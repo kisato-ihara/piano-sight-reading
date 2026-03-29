@@ -102,6 +102,7 @@ function drawRow(
         keys: [vexKey],
         duration: 'q',
         clef,
+        autoStem: true,
       })
       if (absoluteIndex === currentIndex) {
         sn.setStyle({ fillStyle: '#3b82f6', strokeStyle: '#3b82f6' })

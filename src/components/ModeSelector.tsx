@@ -76,6 +76,7 @@ function KeySignatureDisplay({ clef, keyId, modeId }: { clef: Clef; keyId: strin
           keys: [noteToVexKey(n)],
           duration: 'h',
           clef,
+          autoStem: true,
         })
         sn.setStyle({ fillStyle: '#3b82f6', strokeStyle: '#3b82f6' })
         return sn
