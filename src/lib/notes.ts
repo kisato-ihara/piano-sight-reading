@@ -268,6 +268,21 @@ export function getVexKeySignature(keyId: string): string {
   return scale?.vexKey ?? 'C'
 }
 
+/** 調号に含まれる臨時記号のセットを返す（例: G major → { F: '#' }） */
+export function getKeyAccidentals(keyId: string): Map<NoteName, Accidental> {
+  const baseKey = keyId.replace(/-full|-low|-high/, '')
+  const scale = SCALES.find((s) => s.id === baseKey)
+  const map = new Map<NoteName, Accidental>()
+  if (scale) {
+    for (const sn of scale.notes) {
+      if (sn.accidental !== '') {
+        map.set(sn.name, sn.accidental)
+      }
+    }
+  }
+  return map
+}
+
 // --- ピッチ比較（異名同音対応） ---
 
 export function noteToSemitone(note: Note): number {

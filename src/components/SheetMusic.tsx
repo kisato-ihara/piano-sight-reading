@@ -1,19 +1,22 @@
 import { useEffect, useRef } from 'react'
 import { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Barline } from 'vexflow'
-import type { Note, Clef } from '../types'
-import { noteToVexKey } from '../lib/notes'
+import type { Note, NoteName, Accidental as AccType, Clef } from '../types'
+import { noteToVexKey, getKeyAccidentals } from '../lib/notes'
 
 interface Props {
   notes: Note[]
   currentIndex: number
   clef: Clef
+  keySignature?: string // VexFlow key name e.g. 'G', 'D', 'F'
+  selectedKey?: string  // mode key id e.g. 'g-major', 'c-major-full'
 }
 
 const NOTES_PER_ROW = 16
 const BEATS_PER_MEASURE = 4
 const MEASURES_PER_ROW = NOTES_PER_ROW / BEATS_PER_MEASURE
 
-export default function SheetMusic({ notes, currentIndex, clef }: Props) {
+export default function SheetMusic({ notes, currentIndex, clef, keySignature = 'C', selectedKey = 'c-major-full' }: Props) {
+  const keyAccidentals = getKeyAccidentals(selectedKey)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -35,9 +38,9 @@ export default function SheetMusic({ notes, currentIndex, clef }: Props) {
     renderer.resize(totalWidth, height)
     const context = renderer.getContext()
 
-    drawRow(context, row1Notes, clef, 0, 0, clefWidth, measureWidth, currentIndex, 0)
+    drawRow(context, row1Notes, clef, 0, 0, clefWidth, measureWidth, currentIndex, 0, keySignature, keyAccidentals)
     if (row2Notes.length > 0) {
-      drawRow(context, row2Notes, clef, 0, rowHeight, clefWidth, measureWidth, currentIndex, NOTES_PER_ROW)
+      drawRow(context, row2Notes, clef, 0, rowHeight, clefWidth, measureWidth, currentIndex, NOTES_PER_ROW, keySignature, keyAccidentals)
     }
   }, [notes, currentIndex, clef])
 
@@ -65,6 +68,8 @@ function drawRow(
   measureWidth: number,
   currentIndex: number,
   rowOffset: number,
+  keySignature: string,
+  keyAccidentals: Map<NoteName, AccType>,
 ) {
   for (let m = 0; m < MEASURES_PER_ROW; m++) {
     const isFirst = m === 0
@@ -75,6 +80,9 @@ function drawRow(
     const stave = new Stave(staveX, y, staveW)
     if (isFirst) {
       stave.addClef(clef)
+      if (keySignature !== 'C') {
+        stave.addKeySignature(keySignature)
+      }
     }
     if (isLast) {
       stave.setEndBarType(Barline.type.DOUBLE)
@@ -99,8 +107,11 @@ function drawRow(
       } else {
         sn.setStyle({ fillStyle: '#333', strokeStyle: '#333' })
       }
-      if (note.accidental === '#') sn.addModifier(new Accidental('#'))
-      else if (note.accidental === 'b') sn.addModifier(new Accidental('b'))
+      // 調号に含まれない臨時記号のみ個別表示
+      const keyAcc = keyAccidentals.get(note.name)
+      if (note.accidental !== '' && note.accidental !== keyAcc) {
+        sn.addModifier(new Accidental(note.accidental))
+      }
       return sn
     })
 

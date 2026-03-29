@@ -3,7 +3,7 @@ import SheetMusic from './components/SheetMusic'
 import PianoKeyboard from './components/PianoKeyboard'
 import ModeSelector from './components/ModeSelector'
 import Stats from './components/Stats'
-import { GAME_MODES, pickRandomNote, noteToString, noteToToneFormat, isSamePitch } from './lib/notes'
+import { GAME_MODES, pickRandomNote, noteToString, noteToToneFormat, isSamePitch, getVexKeySignature } from './lib/notes'
 import { initSound, playNote } from './lib/sound'
 import { getWeightedNotes } from './lib/weaknessTracker'
 import { db } from './lib/db'
@@ -154,7 +154,7 @@ export default function App() {
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24, padding: '0 16px', minHeight: 0 }}>
-          <SheetMusic notes={noteQueue} currentIndex={currentIndex} clef={currentMode.clef} />
+          <SheetMusic notes={noteQueue} currentIndex={currentIndex} clef={currentMode.clef} keySignature={getVexKeySignature(selectedKey)} selectedKey={selectedKey} />
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 120 }}>
             <div style={{ fontSize: 14, color: '#666', fontVariantNumeric: 'tabular-nums' }}>
