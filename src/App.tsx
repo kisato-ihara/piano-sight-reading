@@ -6,7 +6,7 @@ import Stats from './components/Stats'
 import { GAME_MODES, pickRandomNote, noteToString, noteToToneFormat, isSamePitch, getVexKeySignature, applyRandomAccidental } from './lib/notes'
 import { initSound, playNote } from './lib/sound'
 import { getWeightedNotes } from './lib/weaknessTracker'
-import { db } from './lib/db'
+import { db, getBestTime, saveBestTime } from './lib/db'
 import type { Note, Clef, GameState } from './types'
 
 const TOTAL_QUESTIONS = 32
@@ -25,6 +25,10 @@ export default function App() {
   const [score, setScore] = useState({ correct: 0, total: 0 })
   const [statsRefresh, setStatsRefresh] = useState(0)
   const startTimeRef = useRef(0)
+  const setStartTimeRef = useRef(0)
+  const [clearTimeMs, setClearTimeMs] = useState(0)
+  const [isNewRecord, setIsNewRecord] = useState(false)
+  const [bestTime, setBestTime] = useState<number | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
 
   const modeId = `${clef}-${selectedKey}`
@@ -48,7 +52,13 @@ export default function App() {
     setHighlightNote(null)
     setMessage('')
     setScore({ correct: 0, total: 0 })
-    startTimeRef.current = performance.now()
+    setClearTimeMs(0)
+    setIsNewRecord(false)
+    const best = await getBestTime(modeId, accidentalEnabled)
+    setBestTime(best)
+    const now = performance.now()
+    startTimeRef.current = now
+    setStartTimeRef.current = now
   }, [currentMode, modeId, weaknessEnabled, accidentalEnabled, selectedKey])
 
   const handleAnswer = useCallback(
@@ -75,6 +85,11 @@ export default function App() {
 
         const nextIndex = currentIndex + 1
         if (nextIndex >= TOTAL_QUESTIONS) {
+          const totalTime = Math.round(performance.now() - setStartTimeRef.current)
+          setClearTimeMs(totalTime)
+          const newRecord = await saveBestTime(modeId, accidentalEnabled, totalTime)
+          setIsNewRecord(newRecord)
+          if (newRecord) setBestTime(totalTime)
           setGameState('finished')
         } else {
           setCurrentIndex(nextIndex)
@@ -91,7 +106,7 @@ export default function App() {
         }, 500)
       }
     },
-    [gameState, currentNote, currentIndex, modeId],
+    [gameState, currentNote, currentIndex, modeId, accidentalEnabled],
   )
 
   const handleStop = useCallback(() => {
@@ -216,28 +231,49 @@ export default function App() {
     >
       {gameState === 'finished' ? (
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ fontSize: 24, fontWeight: 'bold' }}>セット完了!</div>
-          <div style={{ fontSize: 18 }}>
-            {score.correct} / {score.total} 正解
-            <span style={{ marginLeft: 8, color: '#666' }}>
-              ({Math.round((score.correct / score.total) * 100)}%)
-            </span>
+          <div style={{ fontSize: 24, fontWeight: 'bold' }}>
+            {isNewRecord ? '新記録!' : 'セット完了!'}
           </div>
-          <button
-            onClick={handleStop}
-            style={{
-              padding: '12px 32px',
-              fontSize: 18,
-              borderRadius: 8,
-              border: 'none',
-              background: '#3b82f6',
-              color: '#fff',
-              cursor: 'pointer',
-              alignSelf: 'center',
-            }}
-          >
-            もう1セット
-          </button>
+          <div style={{ fontSize: 22, fontVariantNumeric: 'tabular-nums' }}>
+            {(clearTimeMs / 1000).toFixed(1)}秒
+          </div>
+          <div style={{ fontSize: 16, color: '#666' }}>
+            {score.correct} / {score.total} 正解
+            ({Math.round((score.correct / score.total) * 100)}%)
+          </div>
+          <div style={{ fontSize: 14, color: '#999' }}>
+            ベスト: {bestTime != null ? `${(bestTime / 1000).toFixed(1)}秒` : '---'}
+          </div>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+            <button
+              onClick={startQuiz}
+              style={{
+                padding: '12px 32px',
+                fontSize: 18,
+                borderRadius: 8,
+                border: 'none',
+                background: '#3b82f6',
+                color: '#fff',
+                cursor: 'pointer',
+              }}
+            >
+              もう1回
+            </button>
+            <button
+              onClick={handleStop}
+              style={{
+                padding: '12px 32px',
+                fontSize: 18,
+                borderRadius: 8,
+                border: '1px solid #ccc',
+                background: '#f5f5f5',
+                color: '#666',
+                cursor: 'pointer',
+              }}
+            >
+              終わる
+            </button>
+          </div>
         </div>
       ) : (
         <ModeSelector

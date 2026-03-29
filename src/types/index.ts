@@ -25,4 +25,12 @@ export interface GameMode {
   notes: Note[]
 }
 
+export interface BestTimeRecord {
+  id?: number
+  mode: string       // e.g. "treble-c-major-full"
+  accidental: boolean
+  timeMs: number
+  timestamp: number
+}
+
 export type GameState = 'idle' | 'ready' | 'playing' | 'feedback' | 'finished' | 'stats'

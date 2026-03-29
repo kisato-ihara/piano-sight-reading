@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Renderer, Stave, StaveNote, Voice, Formatter } from 'vexflow'
 import { getVexKeySignature, GAME_MODES, noteToVexKey } from '../lib/notes'
+import { getBestTime } from '../lib/db'
 import type { Clef } from '../types'
 
 interface Props {
@@ -117,11 +118,18 @@ export default function ModeSelector({
   onToggleAccidental,
   onStart,
 }: Props) {
+  const [bestTime, setBestTime] = useState<number | null>(null)
+  const modeId = `${selectedClef}-${selectedKey}`
+
+  useEffect(() => {
+    getBestTime(modeId, accidentalEnabled).then(setBestTime)
+  }, [modeId, accidentalEnabled])
+
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
       {/* Column 1: 調号表示 + スタート */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, minWidth: 140 }}>
-        <KeySignatureDisplay clef={selectedClef} keyId={selectedKey} modeId={`${selectedClef}-${selectedKey}`} />
+        <KeySignatureDisplay clef={selectedClef} keyId={selectedKey} modeId={modeId} />
         <button
           onClick={onStart}
           style={{
@@ -137,6 +145,9 @@ export default function ModeSelector({
         >
           スタート
         </button>
+        <div style={{ fontSize: 13, color: '#999' }}>
+          ベスト: {bestTime != null ? `${(bestTime / 1000).toFixed(1)}秒` : '---'}
+        </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15 }}>
           <input type="checkbox" checked={weaknessEnabled} onChange={onToggleWeakness} style={{ width: 18, height: 18 }} />
           苦手克服

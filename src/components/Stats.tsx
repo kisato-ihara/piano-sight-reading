@@ -1,6 +1,20 @@
 import { useEffect, useState } from 'react'
 import { getStatsPerNote, type NoteStats } from '../lib/weaknessTracker'
 
+const NOTE_JA: Record<string, string> = {
+  C: 'ド', D: 'レ', E: 'ミ', F: 'ファ', G: 'ソ', A: 'ラ', B: 'シ',
+}
+
+function noteDisplayName(note: string): string {
+  // note is like "C4", "F#5", "Bb3"
+  const match = note.match(/^([A-G])(#|b)?(\d)$/)
+  if (!match) return note
+  const [, name, acc, octave] = match
+  const ja = NOTE_JA[name] ?? ''
+  const accStr = acc === '#' ? '#' : acc === 'b' ? 'b' : ''
+  return `${name}${accStr}${octave}(${ja})`
+}
+
 interface Props {
   mode: string
   refreshKey: number
@@ -70,12 +84,12 @@ export default function Stats({ mode, refreshKey, onBack }: Props) {
             <thead>
               <tr style={{ borderBottom: '2px solid #ccc' }}>
                 <th style={{ padding: '8px 12px', textAlign: 'left' }}>音</th>
-                <th style={{ padding: '8px 12px', textAlign: 'left' }}>回数</th>
-                <th style={thStyle('errorRate')} onClick={() => setSortKey('errorRate')}>
+                <th style={{ padding: '8px 12px', textAlign: 'right' }}>回数</th>
+                <th style={{ ...thStyle('errorRate'), textAlign: 'right' }} onClick={() => setSortKey('errorRate')}>
                   ミス率 {sortKey === 'errorRate' ? '▼' : ''}
                 </th>
-                <th style={thStyle('avgTime')} onClick={() => setSortKey('avgTime')}>
-                  平均(ms) {sortKey === 'avgTime' ? '▼' : ''}
+                <th style={{ ...thStyle('avgTime'), textAlign: 'right' }} onClick={() => setSortKey('avgTime')}>
+                  平均(秒) {sortKey === 'avgTime' ? '▼' : ''}
                 </th>
               </tr>
             </thead>
@@ -84,17 +98,18 @@ export default function Stats({ mode, refreshKey, onBack }: Props) {
                 const errorRate = Math.round((s.mistakes / s.total) * 100)
                 return (
                   <tr key={note} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '6px 12px', fontWeight: 'bold' }}>{note}</td>
-                    <td style={{ padding: '6px 12px' }}>{s.total}</td>
+                    <td style={{ padding: '6px 12px', fontWeight: 'bold' }}>{noteDisplayName(note)}</td>
+                    <td style={{ padding: '6px 12px', textAlign: 'right' }}>{s.total}</td>
                     <td
                       style={{
                         padding: '6px 12px',
+                        textAlign: 'right',
                         color: errorRate >= 30 ? '#dc2626' : errorRate >= 10 ? '#d97706' : '#16a34a',
                       }}
                     >
                       {errorRate}%
                     </td>
-                    <td style={{ padding: '6px 12px' }}>{Math.round(s.avgResponseMs)}</td>
+                    <td style={{ padding: '6px 12px', textAlign: 'right' }}>{(s.avgResponseMs / 1000).toFixed(1)}</td>
                   </tr>
                 )
               })}
