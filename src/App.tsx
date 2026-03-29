@@ -3,7 +3,7 @@ import SheetMusic from './components/SheetMusic'
 import PianoKeyboard from './components/PianoKeyboard'
 import ModeSelector from './components/ModeSelector'
 import Stats from './components/Stats'
-import { GAME_MODES, pickRandomNote, noteToString, noteToToneFormat, isSamePitch, getVexKeySignature } from './lib/notes'
+import { GAME_MODES, pickRandomNote, noteToString, noteToToneFormat, isSamePitch, getVexKeySignature, applyRandomAccidental } from './lib/notes'
 import { initSound, playNote } from './lib/sound'
 import { getWeightedNotes } from './lib/weaknessTracker'
 import { db } from './lib/db'
@@ -15,6 +15,7 @@ export default function App() {
   const [clef, setClef] = useState<Clef>('treble')
   const [selectedKey, setSelectedKey] = useState('c-major-full')
   const [weaknessEnabled, setWeaknessEnabled] = useState(false)
+  const [accidentalEnabled, setAccidentalEnabled] = useState(false)
   const [noteQueue, setNoteQueue] = useState<Note[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [gameState, setGameState] = useState<GameState>('idle')
@@ -37,7 +38,10 @@ export default function App() {
     if (weaknessEnabled) {
       pool = await getWeightedNotes(currentMode.notes, modeId)
     }
-    const queue = Array.from({ length: TOTAL_QUESTIONS }, () => pickRandomNote(pool))
+    const queue = Array.from({ length: TOTAL_QUESTIONS }, () => {
+      const note = pickRandomNote(pool)
+      return accidentalEnabled ? applyRandomAccidental(note, selectedKey) : note
+    })
     setNoteQueue(queue)
     setCurrentIndex(0)
     setGameState('playing')
@@ -45,7 +49,7 @@ export default function App() {
     setMessage('')
     setScore({ correct: 0, total: 0 })
     startTimeRef.current = performance.now()
-  }, [currentMode, modeId, weaknessEnabled])
+  }, [currentMode, modeId, weaknessEnabled, accidentalEnabled, selectedKey])
 
   const handleAnswer = useCallback(
     async (answer: Note) => {
@@ -243,6 +247,8 @@ export default function App() {
           onSelectKey={setSelectedKey}
           weaknessEnabled={weaknessEnabled}
           onToggleWeakness={() => setWeaknessEnabled(!weaknessEnabled)}
+          accidentalEnabled={accidentalEnabled}
+          onToggleAccidental={() => setAccidentalEnabled(!accidentalEnabled)}
           onStart={() => setGameState('ready')}
         />
       )}

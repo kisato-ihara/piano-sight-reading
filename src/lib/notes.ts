@@ -283,6 +283,33 @@ export function getKeyAccidentals(keyId: string): Map<NoteName, Accidental> {
   return map
 }
 
+/** 臨時記号練習用: 一定確率で調号と異なる臨時記号を付ける */
+export function applyRandomAccidental(note: Note, keyId: string): Note {
+  if (Math.random() > 0.25) return note // 75%はそのまま
+
+  const keyAccidentals = getKeyAccidentals(keyId)
+  const keyAcc = keyAccidentals.get(note.name) ?? ''
+
+  if (keyAcc === '') {
+    // 調号でナチュラルな音 → #かbを付ける
+    // E#, B#, Fb, Cb は避ける
+    const canSharp = note.name !== 'E' && note.name !== 'B'
+    const canFlat = note.name !== 'F' && note.name !== 'C'
+    if (canSharp && canFlat) {
+      return { ...note, accidental: Math.random() < 0.5 ? '#' : 'b' }
+    } else if (canSharp) {
+      return { ...note, accidental: '#' }
+    } else if (canFlat) {
+      return { ...note, accidental: 'b' }
+    }
+  } else {
+    // 調号で#やbが付いている音 → ナチュラルにする
+    return { ...note, accidental: '' }
+  }
+
+  return note
+}
+
 // --- ピッチ比較（異名同音対応） ---
 
 export function noteToSemitone(note: Note): number {

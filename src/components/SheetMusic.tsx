@@ -92,6 +92,9 @@ function drawRow(
     const measureNotes = rowNotes.slice(m * BEATS_PER_MEASURE, (m + 1) * BEATS_PER_MEASURE)
     if (measureNotes.length === 0) continue
 
+    // 小節内の臨時記号状態を追跡（初期値は調号）
+    const effectiveAcc = new Map<string, AccType>()
+
     const staveNotes: StaveNote[] = measureNotes.map((note, i) => {
       const absoluteIndex = rowOffset + m * BEATS_PER_MEASURE + i
       const vexKey = noteToVexKey(note)
@@ -107,11 +110,24 @@ function drawRow(
       } else {
         sn.setStyle({ fillStyle: '#333', strokeStyle: '#333' })
       }
-      // 調号に含まれない臨時記号のみ個別表示
-      const keyAcc = keyAccidentals.get(note.name)
-      if (note.accidental !== '' && note.accidental !== keyAcc) {
-        sn.addModifier(new Accidental(note.accidental))
+
+      // 小節内で現在有効な臨時記号を確認
+      const noteKey = `${note.name}${note.octave}`
+      const currentAcc = effectiveAcc.has(noteKey)
+        ? effectiveAcc.get(noteKey)!
+        : (keyAccidentals.get(note.name) ?? '')
+
+      if (note.accidental !== currentAcc) {
+        // 臨時記号の変更が必要 → 表示する
+        if (note.accidental === '') {
+          sn.addModifier(new Accidental('n')) // ナチュラル
+        } else {
+          sn.addModifier(new Accidental(note.accidental))
+        }
       }
+
+      // 状態を更新
+      effectiveAcc.set(noteKey, note.accidental)
       return sn
     })
 

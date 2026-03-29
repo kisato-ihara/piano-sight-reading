@@ -10,6 +10,8 @@ interface Props {
   onSelectKey: (key: string) => void
   weaknessEnabled: boolean
   onToggleWeakness: () => void
+  accidentalEnabled: boolean
+  onToggleAccidental: () => void
   onStart: () => void
 }
 
@@ -111,6 +113,8 @@ export default function ModeSelector({
   onSelectKey,
   weaknessEnabled,
   onToggleWeakness,
+  accidentalEnabled,
+  onToggleAccidental,
   onStart,
 }: Props) {
   return (
@@ -136,6 +140,10 @@ export default function ModeSelector({
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15 }}>
           <input type="checkbox" checked={weaknessEnabled} onChange={onToggleWeakness} style={{ width: 18, height: 18 }} />
           苦手克服
+        </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15 }}>
+          <input type="checkbox" checked={accidentalEnabled} onChange={onToggleAccidental} style={{ width: 18, height: 18 }} />
+          臨時記号
         </label>
       </div>
 
