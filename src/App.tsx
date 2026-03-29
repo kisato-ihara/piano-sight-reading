@@ -29,7 +29,7 @@ export default function App() {
   const [clearTimeMs, setClearTimeMs] = useState(0)
   const [isNewRecord, setIsNewRecord] = useState(false)
   const [bestTime, setBestTime] = useState<number | null>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const modeId = `${clef}-${selectedKey}`
   const currentMode = GAME_MODES.find((m) => m.id === modeId)

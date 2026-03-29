@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="24" fill="#1e293b"/>
+  <g transform="translate(16, 40)">
+    <!-- 五線 -->
+    <line x1="20" y1="30" x2="140" y2="30" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="20" y1="42" x2="140" y2="42" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="20" y1="54" x2="140" y2="54" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="20" y1="66" x2="140" y2="66" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="20" y1="78" x2="140" y2="78" stroke="#94a3b8" stroke-width="2"/>
+    <!-- 音符 -->
+    <ellipse cx="60" cy="72" rx="10" ry="8" fill="#3b82f6" transform="rotate(-15, 60, 72)"/>
+    <line x1="69" y1="72" x2="69" y2="30" stroke="#3b82f6" stroke-width="3"/>
+    <ellipse cx="110" cy="54" rx="10" ry="8" fill="#64748b" transform="rotate(-15, 110, 54)"/>
+    <line x1="119" y1="54" x2="119" y2="18" stroke="#64748b" stroke-width="3"/>
+  </g>
+  <!-- 鍵盤 -->
+  <g transform="translate(16, 130)">
+    <rect x="0" y="0" width="22" height="50" rx="2" fill="#fff" stroke="#94a3b8"/>
+    <rect x="23" y="0" width="22" height="50" rx="2" fill="#fff" stroke="#94a3b8"/>
+    <rect x="46" y="0" width="22" height="50" rx="2" fill="#fff" stroke="#94a3b8"/>
+    <rect x="69" y="0" width="22" height="50" rx="2" fill="#fff" stroke="#94a3b8"/>
+    <rect x="92" y="0" width="22" height="50" rx="2" fill="#fff" stroke="#94a3b8"/>
+    <rect x="115" y="0" width="22" height="50" rx="2" fill="#fff" stroke="#94a3b8"/>
+    <rect x="138" y="0" width="22" height="50" rx="2" fill="#fff" stroke="#94a3b8"/>
+    <!-- 黒鍵 -->
+    <rect x="15" y="0" width="14" height="30" rx="2" fill="#1e293b"/>
+    <rect x="38" y="0" width="14" height="30" rx="2" fill="#1e293b"/>
+    <rect x="84" y="0" width="14" height="30" rx="2" fill="#1e293b"/>
+    <rect x="107" y="0" width="14" height="30" rx="2" fill="#1e293b"/>
+    <rect x="130" y="0" width="14" height="30" rx="2" fill="#1e293b"/>
+  </g>
+</svg>
