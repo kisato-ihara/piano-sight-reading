@@ -9,7 +9,7 @@ import { getWeightedNotes } from './lib/weaknessTracker'
 import { db } from './lib/db'
 import type { Note, Clef, GameState } from './types'
 
-const TOTAL_QUESTIONS = 30
+const TOTAL_QUESTIONS = 32
 
 export default function App() {
   const [clef, setClef] = useState<Clef>('treble')
@@ -29,7 +29,6 @@ export default function App() {
   const modeId = `${clef}-${selectedKey}`
   const currentMode = GAME_MODES.find((m) => m.id === modeId)
   const currentNote = noteQueue[currentIndex] ?? null
-  const visibleNotes = noteQueue.slice(currentIndex)
 
   const startQuiz = useCallback(async () => {
     if (!currentMode) return
@@ -64,6 +63,8 @@ export default function App() {
       })
 
       if (correct) {
+        setHighlightNote(answer)
+        setHighlightColor('#4ade80')
         playNote(noteToToneFormat(currentNote))
         setScore((s) => ({ correct: s.correct + 1, total: s.total + 1 }))
         setStatsRefresh((n) => n + 1)
@@ -73,9 +74,8 @@ export default function App() {
           setGameState('finished')
         } else {
           setCurrentIndex(nextIndex)
-          setHighlightNote(null)
-          setMessage('')
           startTimeRef.current = performance.now()
+          setTimeout(() => setHighlightNote(null), 300)
         }
       } else {
         setHighlightNote(answer)
@@ -101,6 +101,11 @@ export default function App() {
   }, [])
 
   const isPlaying = gameState === 'playing' || gameState === 'feedback'
+
+  // 統計画面
+  if (gameState === 'stats') {
+    return <Stats mode={modeId} refreshKey={statsRefresh} onBack={() => setGameState('idle')} />
+  }
 
   // ready画面: 鍵盤+音名を表示
   if (gameState === 'ready') {
@@ -149,10 +154,10 @@ export default function App() {
     return (
       <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24, padding: '0 16px', minHeight: 0 }}>
-          <SheetMusic notes={visibleNotes} clef={currentMode.clef} />
+          <SheetMusic notes={noteQueue} currentIndex={currentIndex} clef={currentMode.clef} />
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            <div style={{ fontSize: 14, color: '#666' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 120 }}>
+            <div style={{ fontSize: 14, color: '#666', fontVariantNumeric: 'tabular-nums' }}>
               {score.correct} / {score.total} (残り {TOTAL_QUESTIONS - currentIndex})
             </div>
             <div
@@ -242,7 +247,19 @@ export default function App() {
         />
       )}
 
-      <Stats mode={modeId} refreshKey={statsRefresh} />
+      <button
+        onClick={() => setGameState('stats')}
+        style={{
+          padding: '8px 20px',
+          fontSize: 16,
+          borderRadius: 8,
+          border: '1px solid #ccc',
+          background: '#f5f5f5',
+          cursor: 'pointer',
+        }}
+      >
+        統計
+      </button>
     </div>
   )
 }

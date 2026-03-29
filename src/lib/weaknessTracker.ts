@@ -2,6 +2,8 @@ import { db } from './db'
 import type { Note } from '../types'
 import { noteToString } from './notes'
 
+const RECENT_LIMIT = 200
+
 export interface NoteStats {
   total: number
   mistakes: number
@@ -9,10 +11,16 @@ export interface NoteStats {
 }
 
 export async function getStatsPerNote(mode: string): Promise<Map<string, NoteStats>> {
-  const records = await db.answers.where('mode').equals(mode).toArray()
+  const records = await db.answers
+    .where('mode')
+    .equals(mode)
+    .reverse()
+    .sortBy('timestamp')
+  const recent = records.slice(0, RECENT_LIMIT)
+
   const map = new Map<string, NoteStats>()
 
-  for (const r of records) {
+  for (const r of recent) {
     const existing = map.get(r.note) ?? { total: 0, mistakes: 0, avgResponseMs: 0 }
     const newTotal = existing.total + 1
     const newMistakes = existing.mistakes + (r.correct ? 0 : 1)

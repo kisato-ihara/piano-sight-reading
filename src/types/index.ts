@@ -25,4 +25,4 @@ export interface GameMode {
   notes: Note[]
 }
 
-export type GameState = 'idle' | 'ready' | 'playing' | 'feedback' | 'finished'
+export type GameState = 'idle' | 'ready' | 'playing' | 'feedback' | 'finished' | 'stats'

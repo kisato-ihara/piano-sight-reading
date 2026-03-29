@@ -1,16 +1,19 @@
 import { useEffect, useRef } from 'react'
-import { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } from 'vexflow'
+import { Renderer, Stave, StaveNote, Voice, Formatter, Accidental, Barline } from 'vexflow'
 import type { Note, Clef } from '../types'
 import { noteToVexKey } from '../lib/notes'
 
 interface Props {
   notes: Note[]
+  currentIndex: number
   clef: Clef
 }
 
-const VISIBLE_COUNT = 8
+const NOTES_PER_ROW = 16
+const BEATS_PER_MEASURE = 4
+const MEASURES_PER_ROW = NOTES_PER_ROW / BEATS_PER_MEASURE
 
-export default function SheetMusic({ notes, clef }: Props) {
+export default function SheetMusic({ notes, currentIndex, clef }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -19,42 +22,24 @@ export default function SheetMusic({ notes, clef }: Props) {
     const div = containerRef.current
     div.innerHTML = ''
 
-    const visibleCount = Math.min(notes.length, VISIBLE_COUNT)
-    const noteSpacing = 50
-    const clefWidth = 60
-    const width = clefWidth + visibleCount * noteSpacing + 20
-    const height = 150
+    const row1Notes = notes.slice(0, NOTES_PER_ROW)
+    const row2Notes = notes.slice(NOTES_PER_ROW, NOTES_PER_ROW * 2)
+
+    const clefWidth = 50
+    const measureWidth = 160
+    const totalWidth = clefWidth + MEASURES_PER_ROW * measureWidth
+    const rowHeight = 110
+    const height = row2Notes.length > 0 ? rowHeight * 2 + 10 : rowHeight + 10
 
     const renderer = new Renderer(div, Renderer.Backends.SVG)
-    renderer.resize(width, height)
+    renderer.resize(totalWidth, height)
     const context = renderer.getContext()
 
-    const stave = new Stave(0, 10, width)
-    stave.addClef(clef)
-    stave.setContext(context).draw()
-
-    const staveNotes = notes.slice(0, visibleCount).map((note, i) => {
-      const vexKey = noteToVexKey(note)
-      const sn = new StaveNote({
-        keys: [vexKey],
-        duration: 'q',
-        clef,
-      })
-      if (i === 0) {
-        sn.setStyle({ fillStyle: '#3b82f6', strokeStyle: '#3b82f6' })
-      } else {
-        sn.setStyle({ fillStyle: '#999', strokeStyle: '#999' })
-      }
-      if (note.accidental === '#') sn.addModifier(new Accidental('#'))
-      else if (note.accidental === 'b') sn.addModifier(new Accidental('b'))
-      return sn
-    })
-
-    const voice = new Voice({ numBeats: visibleCount, beatValue: 4 })
-    voice.addTickables(staveNotes)
-    new Formatter().joinVoices([voice]).format([voice], width - clefWidth - 30)
-    voice.draw(context, stave)
-  }, [notes, clef])
+    drawRow(context, row1Notes, clef, 0, 0, clefWidth, measureWidth, currentIndex, 0)
+    if (row2Notes.length > 0) {
+      drawRow(context, row2Notes, clef, 0, rowHeight, clefWidth, measureWidth, currentIndex, NOTES_PER_ROW)
+    }
+  }, [notes, currentIndex, clef])
 
   return (
     <div
@@ -68,4 +53,66 @@ export default function SheetMusic({ notes, clef }: Props) {
       }}
     />
   )
+}
+
+function drawRow(
+  context: ReturnType<InstanceType<typeof Renderer>['getContext']>,
+  rowNotes: Note[],
+  clef: Clef,
+  x: number,
+  y: number,
+  clefWidth: number,
+  measureWidth: number,
+  currentIndex: number,
+  rowOffset: number,
+) {
+  for (let m = 0; m < MEASURES_PER_ROW; m++) {
+    const isFirst = m === 0
+    const isLast = m === MEASURES_PER_ROW - 1
+    const staveX = x + (isFirst ? 0 : clefWidth + m * measureWidth)
+    const staveW = isFirst ? clefWidth + measureWidth : measureWidth
+
+    const stave = new Stave(staveX, y, staveW)
+    if (isFirst) {
+      stave.addClef(clef)
+    }
+    if (isLast) {
+      stave.setEndBarType(Barline.type.DOUBLE)
+    }
+    stave.setContext(context).draw()
+
+    const measureNotes = rowNotes.slice(m * BEATS_PER_MEASURE, (m + 1) * BEATS_PER_MEASURE)
+    if (measureNotes.length === 0) continue
+
+    const staveNotes: StaveNote[] = measureNotes.map((note, i) => {
+      const absoluteIndex = rowOffset + m * BEATS_PER_MEASURE + i
+      const vexKey = noteToVexKey(note)
+      const sn = new StaveNote({
+        keys: [vexKey],
+        duration: 'q',
+        clef,
+      })
+      if (absoluteIndex === currentIndex) {
+        sn.setStyle({ fillStyle: '#3b82f6', strokeStyle: '#3b82f6' })
+      } else if (absoluteIndex < currentIndex) {
+        sn.setStyle({ fillStyle: '#ccc', strokeStyle: '#ccc' })
+      } else {
+        sn.setStyle({ fillStyle: '#333', strokeStyle: '#333' })
+      }
+      if (note.accidental === '#') sn.addModifier(new Accidental('#'))
+      else if (note.accidental === 'b') sn.addModifier(new Accidental('b'))
+      return sn
+    })
+
+    for (let i = staveNotes.length; i < BEATS_PER_MEASURE; i++) {
+      const rest = new StaveNote({ keys: ['b/4'], duration: 'qr', clef })
+      rest.setStyle({ fillStyle: 'transparent', strokeStyle: 'transparent' })
+      staveNotes.push(rest)
+    }
+
+    const voice = new Voice({ numBeats: BEATS_PER_MEASURE, beatValue: 4 })
+    voice.addTickables(staveNotes)
+    new Formatter().joinVoices([voice]).format([voice], staveW - (isFirst ? clefWidth + 10 : 20))
+    voice.draw(context, stave)
+  }
 }
