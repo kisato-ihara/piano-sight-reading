@@ -1,19 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getStatsPerNote, type NoteStats } from '../lib/weaknessTracker'
-
-const NOTE_JA: Record<string, string> = {
-  C: 'ド', D: 'レ', E: 'ミ', F: 'ファ', G: 'ソ', A: 'ラ', B: 'シ',
-}
-
-function noteDisplayName(note: string): string {
-  // note is like "C4", "F#5", "Bb3"
-  const match = note.match(/^([A-G])(#|b)?(\d)$/)
-  if (!match) return note
-  const [, name, acc, octave] = match
-  const ja = NOTE_JA[name] ?? ''
-  const accStr = acc === '#' ? '#' : acc === 'b' ? 'b' : ''
-  return `${name}${accStr}${octave}(${ja})`
-}
+import { noteDisplayName } from '../lib/notes'
 
 interface Props {
   mode: string

@@ -338,6 +338,19 @@ export function noteToVexKey(note: Note): string {
   return `${note.name.toLowerCase()}${note.accidental}/${note.octave}`
 }
 
+const NOTE_JA: Record<string, string> = {
+  C: 'ド', D: 'レ', E: 'ミ', F: 'ファ', G: 'ソ', A: 'ラ', B: 'シ',
+}
+
+export function noteDisplayName(note: string): string {
+  const match = note.match(/^([A-G])(#|b)?(\d)$/)
+  if (!match) return note
+  const [, name, acc, octave] = match
+  const ja = NOTE_JA[name] ?? ''
+  const accStr = acc === '#' ? '#' : acc === 'b' ? 'b' : ''
+  return `${name}${accStr}${octave}(${ja})`
+}
+
 /** Tone.js format: e.g. "C4", "F#5" */
 export function noteToToneFormat(note: Note): string {
   const acc = note.accidental === '#' ? '#' : note.accidental === 'b' ? 'b' : ''

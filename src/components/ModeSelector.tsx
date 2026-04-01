@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Renderer, Stave, StaveNote, Voice, Formatter } from 'vexflow'
 import { getVexKeySignature, GAME_MODES, noteToVexKey } from '../lib/notes'
-import { getBestTime } from '../lib/db'
+import { getBestTime, getBestScore } from '../lib/db'
 import type { Clef } from '../types'
 
 interface Props {
@@ -120,10 +120,12 @@ export default function ModeSelector({
   onStart,
 }: Props) {
   const [bestTime, setBestTime] = useState<number | null>(null)
+  const [bestScore, setBestScore] = useState<number | null>(null)
   const modeId = `${selectedClef}-${selectedKey}`
 
   useEffect(() => {
     getBestTime(modeId, accidentalEnabled).then(setBestTime)
+    getBestScore(modeId, accidentalEnabled).then(setBestScore)
   }, [modeId, accidentalEnabled])
 
   return (
@@ -146,8 +148,8 @@ export default function ModeSelector({
         >
           スタート
         </button>
-        <div style={{ fontSize: 13, color: '#999' }}>
-          ベスト: {bestTime != null ? `${(bestTime / 1000).toFixed(1)}秒` : '---'}
+        <div style={{ fontSize: 13, color: '#999', textAlign: 'center' }}>
+          <div>{bestScore != null ? `${bestScore}点` : '---'} / {bestTime != null ? `${(bestTime / 1000).toFixed(1)}秒` : '---'}</div>
         </div>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15 }}>
           <input type="checkbox" checked={weaknessEnabled} onChange={onToggleWeakness} style={{ width: 18, height: 18 }} />

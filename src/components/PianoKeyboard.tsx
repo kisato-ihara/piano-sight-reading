@@ -2,12 +2,19 @@ import { useMemo } from 'react'
 import type { Note, NoteName, Octave, Clef } from '../types'
 import { isSamePitch } from '../lib/notes'
 
+export interface KeyMarker {
+  note: Note
+  label: string
+  color: string
+}
+
 interface Props {
   onKeyPress: (note: Note) => void
   highlightNote?: Note | null
   highlightColor?: string
   showLabels?: boolean
   clef?: Clef
+  markers?: KeyMarker[]
 }
 
 const NOTE_NAMES: NoteName[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B']
@@ -59,9 +66,10 @@ function buildKeys(clef: Clef) {
   return { whiteKeys, blackKeys }
 }
 
-export default function PianoKeyboard({ onKeyPress, highlightNote, highlightColor, showLabels = false, clef = 'treble' }: Props) {
+export default function PianoKeyboard({ onKeyPress, highlightNote, highlightColor, showLabels = false, clef = 'treble', markers }: Props) {
   const { whiteKeys, blackKeys } = useMemo(() => buildKeys(clef), [clef])
   const totalWhite = whiteKeys.length
+  const getMarker = (note: Note) => markers?.find((m) => isSamePitch(m.note, note))
   const whiteKeyWidth = `${100 / totalWhite}%`
   const blackWidth = 100 / totalWhite * 0.6
 
@@ -81,6 +89,7 @@ export default function PianoKeyboard({ onKeyPress, highlightNote, highlightColo
           const highlighted = highlightNote && isSamePitch(highlightNote, k.note)
           const bg = highlighted ? (highlightColor ?? '#4ade80') : '#fff'
           const isC = k.note.name === 'C'
+          const marker = getMarker(k.note)
           return (
             <div
               key={`${k.note.name}${k.note.octave}`}
@@ -89,15 +98,16 @@ export default function PianoKeyboard({ onKeyPress, highlightNote, highlightColo
                 width: whiteKeyWidth,
                 height: '100%',
                 background: bg,
-                borderTop: '1px solid #999',
-                borderBottom: '1px solid #999',
-                borderLeft: i === 0 ? '1px solid #999' : 'none',
-                borderRight: '1px solid #999',
+                borderTop: '2px solid #555',
+                borderBottom: '2px solid #555',
+                borderLeft: i === 0 ? '2px solid #555' : 'none',
+                borderRight: '2px solid #555',
                 borderRadius: '0 0 5px 5px',
                 display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'center',
-                paddingBottom: 6,
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                paddingBottom: 4,
                 fontSize: 11,
                 fontWeight: isC ? 'bold' : 'normal',
                 color: highlighted ? '#fff' : isC ? '#333' : '#aaa',
@@ -105,6 +115,7 @@ export default function PianoKeyboard({ onKeyPress, highlightNote, highlightColo
                 boxSizing: 'border-box',
               }}
             >
+              {marker && <span style={{ fontSize: 18, lineHeight: 1 }}>{marker.label}</span>}
               {showLabels ? (isC ? `C${k.note.octave}` : k.note.name) : null}
             </div>
           )
@@ -115,6 +126,7 @@ export default function PianoKeyboard({ onKeyPress, highlightNote, highlightColo
       {blackKeys.map((bk) => {
         const highlighted = highlightNote && isSamePitch(highlightNote, bk.note)
         const bg = highlighted ? (highlightColor ?? '#4ade80') : '#333'
+        const marker = getMarker(bk.note)
         const borderCenter = ((bk.whiteIndex + 1) / totalWhite) * 100
         const leftPercent = borderCenter - blackWidth / 2
         return (
@@ -139,6 +151,7 @@ export default function PianoKeyboard({ onKeyPress, highlightNote, highlightColo
               color: highlighted ? '#fff' : '#888',
             }}
           >
+            {marker && <span style={{ fontSize: 14, lineHeight: 1 }}>{marker.label}</span>}
             {showLabels ? bk.label : null}
           </div>
         )

@@ -33,4 +33,12 @@ export interface BestTimeRecord {
   timestamp: number
 }
 
+export interface BestScoreRecord {
+  id?: number
+  mode: string
+  accidental: boolean
+  score: number
+  timestamp: number
+}
+
 export type GameState = 'idle' | 'ready' | 'playing' | 'feedback' | 'finished' | 'stats'
