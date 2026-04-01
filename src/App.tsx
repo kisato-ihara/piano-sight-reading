@@ -56,7 +56,7 @@ export default function App() {
     await initSound()
     let pool = currentMode.notes
     if (weaknessEnabled) {
-      pool = await getWeightedNotes(currentMode.notes, modeId)
+      pool = await getWeightedNotes(currentMode.notes)
     }
     const queue = Array.from({ length: TOTAL_QUESTIONS }, () => {
       const note = pickRandomNote(pool)
@@ -181,7 +181,7 @@ export default function App() {
 
   // 統計画面
   if (gameState === 'stats') {
-    return <Stats mode={modeId} refreshKey={statsRefresh} onBack={() => setGameState('idle')} />
+    return <Stats refreshKey={statsRefresh} onBack={() => setGameState('idle')} />
   }
 
   // ready画面: 鍵盤+音名を表示

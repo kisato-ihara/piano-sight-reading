@@ -3,20 +3,19 @@ import { getStatsPerNote, type NoteStats } from '../lib/weaknessTracker'
 import { noteDisplayName } from '../lib/notes'
 
 interface Props {
-  mode: string
   refreshKey: number
   onBack: () => void
 }
 
 type SortKey = 'errorRate' | 'avgTime'
 
-export default function Stats({ mode, refreshKey, onBack }: Props) {
+export default function Stats({ refreshKey, onBack }: Props) {
   const [stats, setStats] = useState<Map<string, NoteStats>>(new Map())
   const [sortKey, setSortKey] = useState<SortKey>('errorRate')
 
   useEffect(() => {
-    getStatsPerNote(mode).then(setStats)
-  }, [mode, refreshKey])
+    getStatsPerNote().then(setStats)
+  }, [refreshKey])
 
   const sorted = [...stats.entries()].sort((a, b) => {
     if (sortKey === 'errorRate') {
@@ -58,7 +57,7 @@ export default function Stats({ mode, refreshKey, onBack }: Props) {
         >
           もどる
         </button>
-        <span style={{ fontSize: 18, fontWeight: 'bold' }}>統計（直近200回）</span>
+        <span style={{ fontSize: 18, fontWeight: 'bold' }}>統計（直近200回・全モード）</span>
       </div>
 
       {stats.size === 0 ? (
