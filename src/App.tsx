@@ -156,6 +156,7 @@ export default function App() {
       } else {
         const noteKey = noteToString(currentNote)
         missCountRef.current.set(noteKey, (missCountRef.current.get(noteKey) ?? 0) + 1)
+        playNote(noteToToneFormat(answer))
         setHighlightNote(answer)
         setHighlightColor('#f87171')
         setMessage('ちがう!')

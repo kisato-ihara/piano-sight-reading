@@ -15,7 +15,9 @@ export async function initSound(): Promise<void> {
     },
     release: 1,
     baseUrl: 'https://tonejs.github.io/audio/salamander/',
-  }).toDestination()
+  })
+  sampler.volume.value = 6
+  sampler.toDestination()
   await Tone.loaded()
   initialized = true
 }
