@@ -8,14 +8,16 @@ interface Props {
 }
 
 type SortKey = 'errorRate' | 'avgTime'
+type ClefTab = 'treble' | 'bass'
 
 export default function Stats({ refreshKey, onBack }: Props) {
   const [stats, setStats] = useState<Map<string, NoteStats>>(new Map())
   const [sortKey, setSortKey] = useState<SortKey>('errorRate')
+  const [clefTab, setClefTab] = useState<ClefTab>('treble')
 
   useEffect(() => {
-    getStatsPerNote().then(setStats)
-  }, [refreshKey])
+    getStatsPerNote(clefTab).then(setStats)
+  }, [refreshKey, clefTab])
 
   const sorted = [...stats.entries()].sort((a, b) => {
     if (sortKey === 'errorRate') {
@@ -30,6 +32,16 @@ export default function Stats({ refreshKey, onBack }: Props) {
     color: sortKey === key ? '#3b82f6' : undefined,
     fontWeight: sortKey === key ? 'bold' : 'normal',
     textAlign: 'left',
+  })
+
+  const tabStyle = (active: boolean): React.CSSProperties => ({
+    padding: '6px 16px',
+    fontSize: 15,
+    borderRadius: 6,
+    border: active ? '2px solid #3b82f6' : '1px solid #ccc',
+    background: active ? '#dbeafe' : '#fff',
+    fontWeight: active ? 'bold' : 'normal',
+    cursor: 'pointer',
   })
 
   return (
@@ -57,10 +69,18 @@ export default function Stats({ refreshKey, onBack }: Props) {
         >
           もどる
         </button>
-        <span style={{ fontSize: 18, fontWeight: 'bold' }}>統計（直近200回・全モード）</span>
+        <span style={{ fontSize: 18, fontWeight: 'bold' }}>統計（直近200回）</span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => setClefTab('treble')} style={tabStyle(clefTab === 'treble')}>
+            ト音
+          </button>
+          <button onClick={() => setClefTab('bass')} style={tabStyle(clefTab === 'bass')}>
+            ヘ音
+          </button>
+        </div>
       </div>
 
-      {stats.size === 0 ? (
+      {sorted.length === 0 ? (
         <div style={{ fontSize: 16, color: '#666', textAlign: 'center', marginTop: 32 }}>
           データがありません
         </div>

@@ -10,12 +10,16 @@ export interface NoteStats {
   avgResponseMs: number
 }
 
-export async function getStatsPerNote(): Promise<Map<string, NoteStats>> {
-  const records = await db.answers
+export async function getStatsPerNote(clefFilter?: 'treble' | 'bass'): Promise<Map<string, NoteStats>> {
+  let records = await db.answers
     .orderBy('timestamp')
     .reverse()
-    .limit(RECENT_LIMIT)
     .toArray()
+
+  if (clefFilter) {
+    records = records.filter((r) => r.mode.startsWith(clefFilter + '-'))
+  }
+  records = records.slice(0, RECENT_LIMIT)
 
   const map = new Map<string, NoteStats>()
 
